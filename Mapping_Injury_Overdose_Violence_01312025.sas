@@ -6,9 +6,9 @@ options nofmterr;
 title;footnote;
 
 /*Macros -- Don't update these*/
-%let mapping = C:\Users\mhoskins1\Desktop\Work Files\Workflows\CDC Injury and Violence Data;*<----- Pathway to NCEDSS extracts for additional data (do not need to update);
+%let mapping = C:\Users\mhoskins1\Desktop\Work Files\Workflows\CDC Injury and Violence Data;*<----- Pathway to extract;
 
-
+/*State values and county values will truncate*/
 proc import
 datafile = "&mapping./Mapping_Injury__Overdose__and_Violence_-_County_20250131.csv"
 out=mapping_import
@@ -17,7 +17,7 @@ getnames=yes;
 
 run;
 
-
+/*Fix truncation with informat/format*/
 data WORK.MAPPING_IMPORT;
        %let _EFIERR_ = 0; /* set the ERROR detection macro variable */
        infile 'C:\Users\mhoskins1\Desktop\Work Files\Workflows\CDC Injury and Violence Data/Mapping_Injury__Overdose__and_Violence_-_County_20250131.csv' delimiter = ',' MISSOVER DSD
@@ -65,29 +65,7 @@ data WORK.MAPPING_IMPORT;
 
 	   if period in ('TTM') then delete;
        run;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-proc contents data=mapping_import;run;
-
-
-proc freq data=mapping_import; tables ST_Name /norow nocol nopercent;run;
-
-
-
+/*Confine to FA_Homicide and NC (can adjust as needed)*/       
 proc sql;
 create table mapping_1 as
 select 
@@ -105,16 +83,12 @@ from mapping_import
 ;
 quit;
 
-proc print data=mapping_1 (obs=10)noobs;run;
-
-
 /*Project map West-East (SAS flips it for some reason) using gproject with "degrees"*/
 proc gproject data=maps.counties out=counties_projected degrees;
 id county;
 run;
 
-
-/*Reassign counties their FIPS # with no leading 0's*/
+/*Reassign counties their FIPS # with no leading 0's: did this manually, probably a better way*/
 data counties_numeric;
 set mapping_1;
 
@@ -222,9 +196,6 @@ if owning_jd="Yancey County " then county=199;
 
 run;
 
-
-
-
 /*Create count for each numeric county*/
 proc sql;
 create table map_counts as
@@ -243,13 +214,6 @@ from counties_numeric
 ;
 quit;
 
-proc print data=map_counts noobs label;run;
-
-proc means data=map_counts; var avg_rate;run;
-
-
-
-
 /*Add state variable*/
 data map_counts;
 set map_counts;
@@ -259,6 +223,8 @@ set map_counts;
 run;
 
 /*Create buckets: adjust as necessary but make sure to update values in labels below*/
+
+/*Arbitrary buckets*/
 data map_counts_final;
 set map_counts;
 
@@ -282,7 +248,7 @@ run;
 /*Test run your maps*/
 
 
-/*Maps*/
+/*Maps: I like blue/red bmapping*/
 /*Colors and legend*/
 pattern1 value=solid color='CX90B0D9'; ****Very light greenish blue****;
 pattern2 value=solid color='CXE5C5C2'; ****Pale yellowish pink****;
@@ -299,7 +265,7 @@ legend1 label =(f="albany amt/bold" position=top j=c h=8pt "FAH Avg. R. 2019-202
  shape=bar(.15in,.15in)
  ;
 
- /*Map all MDRO*/
+ /*Map FAH by County 4 yr. avg*/
 title "Firearm Homicide Average Rate NC 2019-2023"; /* add year macro */
 proc gmap map=counties_projected data=map_counts_final all;
 format case_display case_display.;
