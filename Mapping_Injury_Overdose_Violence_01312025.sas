@@ -78,7 +78,8 @@ select
 	rate
 
 from mapping_import 
-	where ST_Name in ('North Carolina') and Intent in ('FA_Homicide')
+	where ST_Name in ('North Carolina') /*and Intent in ('FA_Homicide')*/
+		group by Intent
 	order by owning_jd
 ;
 quit;
@@ -211,6 +212,7 @@ select distinct
 
 from counties_numeric
 	group by county 
+	where Intent in ("FA_Homicide")
 ;
 quit;
 
