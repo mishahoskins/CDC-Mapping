@@ -212,7 +212,7 @@ select distinct
 
 from counties_numeric
 	group by county 
-	where Intent in ("FA_Homicide")
+	where Intent in ("FA_Homicide") /*define intent here*/
 ;
 quit;
 
