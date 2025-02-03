@@ -267,13 +267,42 @@ legend1 label =(f="albany amt/bold" position=top j=c h=8pt "FAH Avg. R. 2019-202
  shape=bar(.15in,.15in)
  ;
 
+
+/*2/2/2024: adding borders for counties that voted Trump vs. Harris in 2024 election*/
+
+/*Create a new variable to flag counties */
+data map_counts_final;
+   set map_counts_final;
+ 
+   if county = 'Buncombe County' 
+   or county = 'Watagua County'
+    or county = 'Mecklenburg County'
+     or county = 'Forsyth County'
+      or county = 'Guilford County'
+       or county = 'Chatham County'
+        or county = 'Wake County'
+	 or county = 'Organge County'
+   	  or county = 'Durham County'
+   	   or county = /*Need to add more ran out of time here; early bedtime picking back up 2/3*/
+   
+   then border_color = 'blue';  /* Set border color to blue for Harris (less counties to code earlier) */
+   else border_color = 'red';  /* Default border color is black, if not Harris then Trump (yay two-party system) */
+run;
+
+
  /*Map FAH by County 4 yr. avg*/
 title "Firearm Homicide Average Rate NC 2019-2023"; /* add year macro */
 proc gmap map=counties_projected data=map_counts_final all;
 format case_display case_display.;
-	id county;
-	choro case_display/ discrete midpoints = 1 2 3 legend=legend1  cdefault=CX90B0D9 /* areas with no data are also green */;
-	where state= 37;
+
+	id county; /*Map to data by county identifier*/
+	choro case_display/ discrete midpoints = 1 2 3 legend=legend1  cdefault=CX90B0D9 /* areas with no data (default) are also lightblue/green */;
+
+    	/* border colors */
+  	 choro case_display / discrete midpoints=1 2 3 
+         bordercolor=border_color;  /* Use the border_color variable */
+	 
+	where state= 37;	/*NC only*/
 	label case_display = "Firearm Homicide Rate NC 2019-2023";
 	
 	run;
