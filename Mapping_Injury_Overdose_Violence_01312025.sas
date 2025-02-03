@@ -283,9 +283,20 @@ data map_counts_final;
         or county = 'Wake County'
 	 or county = 'Organge County'
    	  or county = 'Durham County'
-   	   or county = /*Need to add more ran out of time here; early bedtime picking back up 2/3*/
+   	   or county = 'Wilson County'
+			  or county = 'New Hanover County'
+				 or county = 'Pitt County'
+				  or county = 'Pitt County'
+					 or county = 'Edgecombe County'
+						or county = 'Washington County'
+	or county = 'Bertie County'
+	 or county = 'Hertford County'
+	  or county = 'Northhampton County'
+		 or county = 'Halifax County'
+		  or county = 'Warren County'
+			 or county = 'Vance County'
    
-   then border_color = 'blue';  /* Set border color to blue for Harris (less counties to code earlier) */
+   then border_color = 'blue';  /* Set border color to blue for Harris*/
    else border_color = 'red';  /* Default border color is black, if not Harris then Trump (yay two-party system) */
 run;
 
