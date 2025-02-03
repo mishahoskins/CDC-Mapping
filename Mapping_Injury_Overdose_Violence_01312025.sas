@@ -270,52 +270,92 @@ legend1 label =(f="albany amt/bold" position=top j=c h=8pt "FAH Avg. R. 2019-202
 
 /*2/2/2024: adding borders for counties that voted Trump vs. Harris in 2024 election*/
 
+
 /*Create a new variable to flag counties */
-data map_counts_final;
+data map_counts_border;
    set map_counts_final;
  
-   if county = 'Buncombe County' 
-   or county = 'Watagua County'
-    or county = 'Mecklenburg County'
-     or county = 'Forsyth County'
-      or county = 'Guilford County'
-       or county = 'Chatham County'
-        or county = 'Wake County'
-	 or county = 'Organge County'
-   	  or county = 'Durham County'
-   	   or county = 'Wilson County'
-			  or county = 'New Hanover County'
-				 or county = 'Pitt County'
-				  or county = 'Pitt County'
-					 or county = 'Edgecombe County'
-						or county = 'Washington County'
-	or county = 'Bertie County'
-	 or county = 'Hertford County'
-	  or county = 'Northhampton County'
-		 or county = 'Halifax County'
-		  or county = 'Warren County'
-			 or county = 'Vance County'
+   if owning_jd = 'Buncombe County' 
+	or owning_jd = 'Watagua County'
+    or owning_jd = 'Mecklenburg County'
+    or owning_jd = 'Forsyth County'
+    or owning_jd = 'Guilford County'
+    or owning_jd = 'Chatham County'
+    or owning_jd = 'Wake County'
+	or owning_jd = 'Organge County'
+   	or owning_jd = 'Durham County'
+   	or owning_jd = 'Wilson County'
+	or owning_jd = 'New Hanover County'
+	or owning_jd = 'Pitt County'
+	or owning_jd = 'Pitt County'
+	or owning_jd = 'Edgecombe County'
+	or owning_jd = 'Washington County'
+	or owning_jd = 'Bertie County'
+	or owning_jd = 'Hertford County'
+	or owning_jd = 'Northhampton County'
+	or owning_jd = 'Halifax County'
+	or owning_jd = 'Warren County'
+	or owning_jd = 'Vance County'
    
    then border_color = 'blue';  /* Set border color to blue for Harris*/
    else border_color = 'red';  /* Default border color is black, if not Harris then Trump (yay two-party system) */
 run;
 
-
+proc print data=map_counts_final noobs;run;
  /*Map FAH by County 4 yr. avg*/
+
+
+/*Maps: I like blue/red bmapping*/
+/*Colors and legend*/
+pattern1 value=solid color='CX90B0D9'; ****Very light greenish blue****;
+pattern2 value=solid color='CXE5C5C2'; ****Pale yellowish pink****;
+pattern3 value=solid color='CX99615C'; ****Dark yellowish pink****;
+
+pattern4 value=empty;****Blank/empty pattern****;
+
+
+
+legend1 label =(f="albany amt/bold" position=top j=c h=8pt "FAH Avg. Rt. 2019-2023")
+ value=(f="albany amt" h=10pt c=black tick=3)
+ across=1
+ position=(right middle) 
+ offset=(-2,3)
+ space=1
+ mode=reserve
+ order=descending
+ shape=bar(.15in,.15in)
+ ;
+
+
+
 title "Firearm Homicide Average Rate NC 2019-2023"; /* add year macro */
 proc gmap map=counties_projected data=map_counts_final all;
 format case_display case_display.;
 
 	id county; /*Map to data by county identifier*/
-	choro case_display/ discrete midpoints = 1 2 3 legend=legend1  cdefault=CX90B0D9 /* areas with no data (default) are also lightblue/green */;
+	choro case_display/ discrete midpoints = 1 2 3 legend=legend1 cdefault=CX90B0D9;  /*areas with no data (default) are also lightblue/green */
 
-    	/* border colors */
-  	 choro case_display / discrete midpoints=1 2 3 
-         bordercolor=border_color;  /* Use the border_color variable */
-	 
+
 	where state= 37;	/*NC only*/
 	label case_display = "Firearm Homicide Rate NC 2019-2023";
 	
 	run;
 
-quit;
+proc gmap map=counties_projected data=map_counts_border;
+	where  border_color = 'red';
+
+	id county; /*Map to data by county identifier*/
+    	/* border colors */
+   		choro border_color / discrete midpoints = 4 coutline=red nolegend ; /*Use the border_color variable */
+	 	
+	run;
+
+proc gmap map=counties_projected data=map_counts_border;
+	where  border_color = 'blue';
+
+	id county; /*Map to data by county identifier*/
+    	/* border colors */
+   		choro border_color / discrete midpoints = 4 coutline=blue nolegend ; /*Use the border_color variable */
+	 	
+	run;
+
