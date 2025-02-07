@@ -6,10 +6,7 @@ title;footnote;
 
 /*Macros -- Don't update these*/
 %let cardio = C:\Users\mhoskins1\Desktop\Work Files\Workflows\Cardiovascular;*<----- Pathway to extract;
-
-
-
-
+/*Extract Source: https://archive.org/download/20250128-cdc-datasets*/
 
 data cardio_import;
        %let _EFIERR_ = 0; /* set the ERROR detection macro variable */
@@ -87,13 +84,6 @@ set cardio_import;
 if LocationAbbr not in ('NC') then delete;
 run;
 
-proc print data=cardio_import_nc noobs; where LocationID in (37109) and Stratification1 in ('Ages 35-64 years') and Data_value_type in ('Age-Standardized, Spatially Smoothed Rate');run;
-
-
-
-
-
-
 /*Assign 'County' variable with no leading 0's according to FIPS #*/
 data cardio_nc_clean;
 set cardio_import_nc;
@@ -120,30 +110,24 @@ if Rate=. then delete;
 
 run;
 
-/*Quick view to make sure it worked*/
-
-
 /*Project map West-East (SAS flips it for some reason) using gproject with "degrees"*/
 proc gproject data=maps.counties out=counties_projected degrees;
 id county;
 run;
 
-
-proc contents data=cardio_nc_clean;run;
-/*Create count for each numeric county*/
+/*Create count of avg. rate for each numeric county 1-199*/
 proc sql;
 create table map_counts as
-select 
+select distinct
 
 	county,
-	Year_new,
 	mean(Rate) as avg_rate
 
 from cardio_nc_clean
 	group by County	 
 ;
 quit;
-
+/*100 rows (1 for each NC county)*/
 /*Add state variable*/
 data map_counts;
 set map_counts;
@@ -151,15 +135,18 @@ set map_counts;
 	state=37;
 
 run;
-
+/*Run proc means to find averages/median for state*/
+proc means data=map_counts Q1 Q3 Median Mean;
+var avg_rate;
+run;
 /*Create buckets: adjust as necessary but make sure to update values in labels below*/
 data map_counts_final;
 set map_counts;
 
-	if avg_rate <=118.55 then case_display=1;/*Lower quartile of values*/
-	if 143.37=> avg_rate > 118.55 then case_display=2; /*Lower-middle quartile range*/
-	if 162.80=> avg_rate > 143.37 then case_display=3; /*Upper-middle quartile range*/
-	if 162.80 < avg_rate then case_display=4;/*Upper quartile*/
+	if avg_rate <=117.21 then case_display=1;/*Lower quartile of values*/
+	if 142.96=> avg_rate > 117.21 then case_display=2; /*Lower-middle quartile range*/
+	if 163.85=> avg_rate > 142.96 then case_display=3; /*Upper-middle quartile range*/
+	if 163.85 < avg_rate then case_display=4;/*Upper quartile*/
 
 
 	if avg_rate <= 143.37 then case_display_med=1; /*at or below median*/
@@ -174,10 +161,10 @@ run;
 proc format;
 	value case_display
 	
-	1= "118.55 excess mortality rate or less (Q1)"
-	2= "118.55-143.37 excess mortality rate (Q2)"
-	3= "143.38-162.80 excess mortality rate (Q3)"
-	4= "162.81 excess mortality rate or more (Q4)"
+	1= "117.21 excess mortality rate or less (Q1)"
+	2= "117.21-142.96 excess mortality rate (Q2)"
+	3= "142.96-163.85 excess mortality rate (Q3)"
+	4= "163.85 excess mortality rate or more (Q4)"
 ;
 
 
@@ -200,7 +187,7 @@ pattern5 value=empty;****Blank/empty pattern****;
 
 
 
-legend1 label =(f="albany amt" position=top j=c h=10pt "Rate per 100k Population (NC Median: 143.37)")
+legend1 label =(f="albany amt" position=top j=c h=10pt "Rate per 100k Population (NC Median: 142.96)")
  value=(f="albany amt" h=8pt c=black tick=3)
  across=1
  position=(right middle) 
